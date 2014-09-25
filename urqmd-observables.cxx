@@ -15,9 +15,12 @@
 #define OLD_URQMD true
 
 // kinematic cuts
+// max |eta| for dNch/deta
 const double eta_max = 0.5;
-const double pT_min = 0.2;
-const double pT_max = 5.0;
+// cuts for Qn
+const double flow_eta_max = 1.0;
+const double flow_pT_min = 0.2;
+const double flow_pT_max = 5.0;
 
 // range of Qn to calculate
 const unsigned Qn_min = 2;
@@ -35,11 +38,13 @@ int main() {
   // cache for later use
   const double exp2eta_min = std::exp(-2.*eta_max);
   const double exp2eta_max = std::exp(2.*eta_max);
-  const double pT_squared_min = pT_min*pT_min;
-  const double pT_squared_max = pT_max*pT_max;
+  const double flow_exp2eta_min = std::exp(-2.*flow_eta_max);
+  const double flow_exp2eta_max = std::exp(2.*flow_eta_max);
+  const double flow_pT_squared_min = flow_pT_min*flow_pT_min;
+  const double flow_pT_squared_max = flow_pT_max*flow_pT_max;
 
   std::string line;
-  size_t Nch_all = 0, Nch_in_pT_range = 0;
+  size_t Nch_mid_rapidity = 0, Nch_flow = 0;
   std::vector<std::complex<double>> Qn_vectors(Qn_max - Qn_min + 1);
 
   // read stdin
@@ -50,10 +55,10 @@ int main() {
     // check if this is a particle line
     if (line.size() != 434) {
       // event has ended
-      // output event data
-      if (Nch_all > 0) {
-        std::cout << Nch_all << ' '
-                  << Nch_in_pT_range;
+      if (Nch_mid_rapidity > 0) {
+        // output event data
+        std::cout << Nch_mid_rapidity << ' '
+                  << Nch_flow;
         for (size_t i = 0; i < Qn_vectors.size(); ++i) {
           auto Qn = Qn_vectors[i];
           std::cout << ' ' << Qn.real()
@@ -61,8 +66,8 @@ int main() {
         }
         std::cout << '\n';
         // reset variables
-        Nch_all = 0;
-        Nch_in_pT_range = 0;
+        Nch_mid_rapidity = 0;
+        Nch_flow = 0;
         std::fill(Qn_vectors.begin(), Qn_vectors.end(), 0);
       }
       continue;
@@ -83,22 +88,25 @@ int main() {
     auto py = std::stod(line.substr(145, 23));
     auto pz = std::stod(line.substr(169, 23));
 
-    // |eta| cut
+    // calculate |eta|
     auto pmag = std::sqrt(px*px + py*py + pz*pz);
     auto exp2eta = (pmag+pz)/(pmag-pz);
-    if (exp2eta > exp2eta_max || exp2eta < exp2eta_min)
-      continue;
 
-    // keep this particle
-    ++Nch_all;
+    // mid-rapidity |eta| cut
+    if (exp2eta < exp2eta_max && exp2eta > exp2eta_min)
+      ++Nch_mid_rapidity;
+
+    // flow |eta| cut
+    if (exp2eta > flow_exp2eta_max || exp2eta < flow_exp2eta_min)
+      continue;
 
     // pT cut
     auto pT_squared = px*px + py*py;
-    if (pT_squared > pT_squared_max || pT_squared < pT_squared_min)
+    if (pT_squared > flow_pT_squared_max || pT_squared < flow_pT_squared_min)
       continue;
 
     // include this particle in flows
-    ++Nch_in_pT_range;
+    ++Nch_flow;
     auto phi = std::atan2(py, px);
     for (auto n = Qn_min; n <= Qn_max; ++n) {
       auto i = n - Qn_min;
