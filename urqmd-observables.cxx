@@ -18,10 +18,10 @@
 // max |eta| for dNch/deta
 const double eta_max = 0.5;
 // cuts for Qn
-// set to match recent ALICE data http://hepdata.cedar.ac.uk/view/ins1300038
-const double flow_eta_max = 1.0;
-const double flow_pT_min = 0.2;
-const double flow_pT_max = 3.0;
+// set to match recent ATLAS data http://hepdata.cedar.ac.uk/view/ins1311487
+const double flow_eta_max = 2.5;
+const double flow_pT_min = 0.5;
+const double flow_pT_max = 20.0;
 
 // range of Qn to calculate
 const unsigned Qn_min = 2;
