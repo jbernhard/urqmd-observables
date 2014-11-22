@@ -1,7 +1,9 @@
 CXX = $(shell which icpc &> /dev/null && echo icpc || echo g++)
 CXXFLAGS = -std=c++11 -march=native -O3 -Wall
-TARGET = urqmd-observables
-SRC = $(TARGET).cxx
+NAME = urqmd-observables
+EXP = atlas
+TARGET = $(NAME)-$(EXP)
+SRC = $(NAME).cxx
 
 all: $(TARGET)
 
